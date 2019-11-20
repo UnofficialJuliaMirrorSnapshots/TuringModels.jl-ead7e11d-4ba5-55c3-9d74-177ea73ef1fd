@@ -1,9 +1,9 @@
-using TuringModels
+using TuringModels, StatsFuns
 
 Turing.setadbackend(:reverse_diff);
 #nb Turing.turnprogress(false)
 
-d = CSV.read(rel_path("..", "data", "UCBadmit.csv"), delim=';');
+d = CSV.read(joinpath(@__DIR__, "..", "..", "data", "UCBadmit.csv"), delim=';');
 size(d) # Should be 12x5
 
 @model m_pois(admit, reject) = begin
@@ -18,11 +18,7 @@ size(d) # Should be 12x5
    end
 end;
 
-posterior = sample(m_pois(d[:admit], d[:reject]), Turing.NUTS(2000, 1000, 0.95));
-
-# Fix the inclusion of adaptation samples
-
-posterior2 = posterior[1001:2000,:,:];
+chns = sample(m_pois(d[:, :admit], d[:, :reject]), Turing.NUTS(0.95), 1000);
 
 # Rethinking/CmdStan result
 
@@ -34,6 +30,6 @@ m_10_yyt_result = "
 
 # Describe the draws
 
-describe(posterior2)
+describe(chns)
 
 # End of 10/m10.yyt.jl
